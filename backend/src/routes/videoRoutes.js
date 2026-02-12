@@ -1,13 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const { uploadLessonVideo } = require("../controller/uploadController");
-
-// Store temporarily in uploads folder
+const { uploadLessonVideo } = require("../controllers/videoController");
+// Temp storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
+  destination: "uploads/",
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
   }
@@ -15,7 +12,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// API: Upload lesson video
 router.post("/upload-video", upload.single("video"), uploadLessonVideo);
 
 module.exports = router;

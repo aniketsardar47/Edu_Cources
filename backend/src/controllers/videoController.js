@@ -1,5 +1,6 @@
 const Lesson = require("../models/Lesson");
 const uploadVideoToCloud = require("../services/cloudUpload");
+const generateResolutionUrls = require("../services/videoTransformService");
 const fs = require("fs");
 
 exports.uploadLessonVideo = async (req, res) => {
@@ -13,15 +14,25 @@ exports.uploadLessonVideo = async (req, res) => {
     // Upload to cloud
     const cloudData = await uploadVideoToCloud(req.file.path);
 
+    // Calculate original resolution
+    const originalResolution = `${cloudData.width}x${cloudData.height}`;
+
+    // Generate different resolution URLs
+    const resolutions = generateResolutionUrls(cloudData.publicId);
+
     // Save lesson in DB
     const lesson = new Lesson({
       title,
       textContent,
       video: {
+        publicId: cloudData.publicId,
         url: cloudData.url,
         size: cloudData.size,
         duration: cloudData.duration,
-        resolution: "360p"
+        originalResolution: originalResolution,
+        width: cloudData.width,
+        height: cloudData.height,
+        resolutions: resolutions
       }
     });
 

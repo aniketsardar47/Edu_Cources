@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const uploadRoutes = require("./routes/uploadRoute");
+const videoRoutes = require("./routes/videoRoutes");
 
 const app = express();
 
@@ -8,6 +8,6 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/api", uploadRoutes);
+app.use("/api/admin", videoRoutes);
 
 module.exports = app;

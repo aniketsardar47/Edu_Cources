@@ -5,12 +5,24 @@ const lessonSchema = new mongoose.Schema({
   textContent: String,
 
   video: {
+    publicId: String,
     url: String,
     size: Number,
     duration: Number,
-    resolution: String
+    originalResolution: String,
+    width: Number,
+    height: Number,
+    resolutions: {
+      p240: String,
+      p360: String,
+      p720: String
+    }
   },
 
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 module.exports = mongoose.model("Lesson", lessonSchema);

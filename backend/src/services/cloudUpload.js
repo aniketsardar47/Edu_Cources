@@ -17,9 +17,12 @@ const uploadVideoToCloud = async (filePath) => {
     });
 
     return {
+      publicId: result.public_id,
       url: result.secure_url,
       size: result.bytes / (1024 * 1024), // MB
-      duration: result.duration
+      duration: result.duration,
+      width: result.width,
+      height: result.height
     };
   } catch (error) {
     throw error;
