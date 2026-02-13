@@ -1,29 +1,9 @@
-const cloudinary = require("cloudinary").v2;
-require("dotenv").config();
-
-cloudinary.config({
-  cloud_name: "dzdgexvxu",
-  api_key: "522722596367341",
-  api_secret: "UtMmJKt8W3O4nRitu8kBYlmRw8Y"
-});
-
-const generateResolutionUrls = (publicId) => {
+const generateUrls = (url) => {
   return {
-    p240: cloudinary.url(publicId, {
-      resource_type: "video",
-      transformation: [{ width: 426, height: 240, crop: "scale" }]
-    }),
-
-    p360: cloudinary.url(publicId, {
-      resource_type: "video",
-      transformation: [{ width: 640, height: 360, crop: "scale" }]
-    }),
-
-    p720: cloudinary.url(publicId, {
-      resource_type: "video",
-      transformation: [{ width: 1280, height: 720, crop: "scale" }]
-    })
+    p240: `${url}?tr=w-426,h-240`,
+    p360: `${url}?tr=w-640,h-360`,
+    p720: `${url}?tr=w-1280,h-720`
   };
 };
 
-module.exports = generateResolutionUrls;
+module.exports = generateUrls;
