@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const adminRoutes = require("./routes/adminRoutes");
 const courseRoutes = require("./routes/courseRoutes");
+const videoRoutes = require("./routes/videoRoutes");
 
 const app = express();
 
@@ -13,6 +14,12 @@ app.use(express.json());
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/courses", courseRoutes);
+
+
+
+app.use("/api/videos", videoRoutes);
+
+
 //sdjhcdhsdh
 
 module.exports = app;
