@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const { uploadLessonVideo } = require("../controllers/videoController");
+const { uploadVideoByAdmin } = require("../controllers/adminController");
+
 // Temp storage
 const storage = multer.diskStorage({
   destination: "uploads/",
@@ -11,7 +12,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-
-router.post("/upload-video", upload.single("video"), uploadLessonVideo);
+router.post("/upload-video", upload.single("video"), uploadVideoByAdmin);
 
 module.exports = router;
