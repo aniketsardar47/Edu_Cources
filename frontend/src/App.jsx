@@ -1,12 +1,12 @@
 
 import './App.css'
-import Body from './components/Body'
+import VideoPlayer from './components/VideoPlayer'
 
 function App() {
 
   return (
     <>
-      <Body/> 
+      <VideoPlayer/> 
     </>
   )
 }
