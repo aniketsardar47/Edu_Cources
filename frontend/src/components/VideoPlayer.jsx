@@ -1,22 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import useRealtimeSpeed from "./useRealtimeSpeed";
 
-const VIDEO_SOURCES = {
-  "240p":
-    "https://res.cloudinary.com/dzdgexvxu/video/upload/c_scale,h_240,w_426/v1/learning_app/videos/nqwwjypa40x0s35ngyn9?_a=BAMAOGce0",
-  
-  "360p":
-    "https://res.cloudinary.com/dzdgexvxu/video/upload/c_scale,h_360,w_640/v1/learning_app/videos/nqwwjypa40x0s35ngyn9?_a=BAMAOGce0",
-
-  "720p":
-    "https://res.cloudinary.com/dzdgexvxu/video/upload/c_scale,h_720,w_1280/v1/learning_app/videos/nqwwjypa40x0s35ngyn9?_a=BAMAOGce0",
-};
-
 const VideoPlayer = () => {
   const videoRef = useRef(null);
-  const [quality, setQuality] = useState("720p");
+  const [quality, setQuality] = useState("Auto");
   const [currentTime, setCurrentTime] = useState(0);
+  const [videoData, setVideoData] = useState(null);
   const speed = useRealtimeSpeed(3000);
+
+  useEffect(() => {
+    fetch("http://localhost:7777/api/videos/course/698f744c4c54558c193828d8/698f74a54c54558c193828da")
+      .then(res => res.json())
+      .then(data => setVideoData(data));
+  }, []);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -25,6 +21,14 @@ const VideoPlayer = () => {
     }
   }, [quality]);
 
+  useEffect(() => {
+    if (!videoData || quality !== "Auto") return;
+
+    if (speed < 1) setQuality("240p");
+    else if (speed < 3) setQuality("360p");
+    else setQuality("720p");
+  }, [speed, videoData]);
+
   const handleQualityChange = (e) => {
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
@@ -32,33 +36,32 @@ const VideoPlayer = () => {
     setQuality(e.target.value);
   };
 
+  if (!videoData) return <p>Loading video...</p>;
+
+  const VIDEO_SOURCES = {
+    "240p": videoData.resolutions.p240,
+    "360p": videoData.resolutions.p360,
+    "720p": videoData.resolutions.p720,
+  };
+
   return (
-    <div style={{ maxWidth: "800px", margin: "auto" }}>
+    <div>
       <video
         ref={videoRef}
         src={VIDEO_SOURCES[quality]}
         controls
-        preload="metadata"
-        playsInline
-        style={{ width: "100%", borderRadius: "8px" }}
+        style={{ width: "100%" }}
       />
 
-      <div style={{ marginTop: "10px" }}>
-        <label>Quality: </label>
-        <select value={quality} onChange={handleQualityChange}>
-          <option value="240p">240p</option>
-          <option value="360p">360p</option>
-          <option value="720p">720p (HD)</option>
-          <option value="Auto">Auto</option>
-        </select>
+      <select value={quality} onChange={handleQualityChange}>
+        <option value="Auto">Auto</option>
+        <option value="240p">240p</option>
+        <option value="360p">360p</option>
+        <option value="720p">720p</option>
+      </select>
 
-          <p>
-        Network Speed:{" "}
-        <strong>{speed ? `${speed} Mbps` : "Testing..."}</strong>
-      </p>
-      </div>
+      <p>Speed: {speed ? `${speed} Mbps` : "Testing..."}</p>
     </div>
   );
 };
-
 export default VideoPlayer;
