@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import useRealtimeSpeed from "./useRealtimeSpeed";
+import useRealtimeSpeed from "../hooks/useRealtimeSpeed";
 
 const VideoPlayer = () => {
   const videoRef = useRef(null);
