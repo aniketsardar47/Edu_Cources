@@ -25,6 +25,8 @@ const videoSchema = new mongoose.Schema({
     p720: String
   },
 
+  descriptionUrl: String,
+  
   order: Number,
 
   createdAt: {
