@@ -1,6 +1,7 @@
+require("dotenv").config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenerativeAI("AIzaSyCNuKZn_RUhM9DBd6ZwTc0zLEzRh7dtg0s");
+const genAI = new GoogleGenerativeAI(process.env.GEMENI_API_KEY);
 
 const generateDescription = async (transcript) => {
   try {

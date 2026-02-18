@@ -1,7 +1,10 @@
+require("dotenv").config();
 const fs = require("fs");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenerativeAI("AIzaSyBGNvplp8oCYrd3bNs_GKyv1VhLvlLhtD4");
+
+
+const genAI = new GoogleGenerativeAI(process.env.GEMENI_API_KEY);
 
 const transcribeAudio = async (audioPath) => {
   try {
