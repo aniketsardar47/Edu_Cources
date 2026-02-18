@@ -56,6 +56,7 @@ exports.uploadVideoByAdmin = async (req, res) => {
       textContent,
       publicId: fileData.fileId,
       url: videoUrl,
+      downloadUrl: fileData.downloadUrl,
       descriptionUrl,
       size: fileData.size,
       resolutions,

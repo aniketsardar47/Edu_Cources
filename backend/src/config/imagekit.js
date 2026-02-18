@@ -2,9 +2,9 @@ const ImageKit = require("imagekit");
 require("dotenv").config();
 
 const imagekit = new ImageKit({
-  publicKey: "public_cOAXtcJYZnkRstg6yJBfr5+p0+8=",
-  privateKey: "private_xti0I8vFoFXWjH0+0LtRA7qzHok=",
-  urlEndpoint: "https://ik.imagekit.io/5xf9qpp4o"
+  publicKey: "public_Wjtwxzb3s7UztZpUmd32AlmRKN0=",
+  privateKey: "private_Ops5Hr/Sx4DJyncMwMe6v3MIjS0=",
+  urlEndpoint: "https://ik.imagekit.io/evh2jgd9o"
 });
 
 module.exports = imagekit;

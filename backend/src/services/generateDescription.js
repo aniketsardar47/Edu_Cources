@@ -1,6 +1,6 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenerativeAI("AIzaSyBGNvplp8oCYrd3bNs_GKyv1VhLvlLhtD4");
+const genAI = new GoogleGenerativeAI("AIzaSyCNuKZn_RUhM9DBd6ZwTc0zLEzRh7dtg0s");
 
 const generateDescription = async (transcript) => {
   try {

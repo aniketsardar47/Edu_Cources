@@ -11,7 +11,10 @@ const videoSchema = new mongoose.Schema({
   textContent: String,
 
   publicId: String,
+  
   url: String,
+
+  downloadUrl: String,
 
   size: Number,
   duration: Number,
