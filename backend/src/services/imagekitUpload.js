@@ -2,23 +2,28 @@ const imagekit = require("../config/imagekit");
 const fs = require("fs");
 const path = require("path");
 
-const uploadVideo = async (filePath) => {
+/**
+ * Generic uploader (internal use)
+ */
+const uploadToImagekit = async (filePath, folder) => {
   try {
-    // Get file name from path
+    // Get file name
     const fileName = path.basename(filePath);
 
+    // Read file
     const file = fs.readFileSync(filePath);
 
+    // Upload to ImageKit
     const result = await imagekit.upload({
       file: file,
       fileName: fileName,
-      folder: "/learning_app/videos"
+      folder: folder
     });
 
     // Streaming URL
     const streamUrl = result.url;
 
-    // Force download URL
+    // Forced download URL
     const downloadUrl = `${result.url}?dl=${fileName}`;
 
     return {
@@ -26,7 +31,8 @@ const uploadVideo = async (filePath) => {
       url: streamUrl,
       downloadUrl,
       fileName,
-      size: result.size / (1024 * 1024)
+      fileType: path.extname(fileName),
+      size: result.size / (1024 * 1024) // MB
     };
 
   } catch (error) {
@@ -35,4 +41,23 @@ const uploadVideo = async (filePath) => {
   }
 };
 
-module.exports = uploadVideo;
+
+/**
+ * Upload Video
+ */
+const uploadVideo = async (filePath) => {
+  return uploadToImagekit(filePath, "/learning_app/videos");
+};
+
+
+/**
+ * Upload Attachment File (PDF, PPT, Notes, etc.)
+ */
+const uploadFile = async (filePath) => {
+  return uploadToImagekit(filePath, "/learning_app/attachments");
+};
+
+module.exports = {
+  uploadVideo,
+  uploadFile
+};

@@ -1,5 +1,20 @@
 const mongoose = require("mongoose");
 
+const attachmentSchema = new mongoose.Schema({
+  fileId: String,
+  fileName: String,
+  fileUrl: String,
+  downloadUrl: String,
+  fileType: String,
+  size: Number
+});
+
+const questionSchema = new mongoose.Schema({
+  question: String,
+  options: [String],
+  correctAnswer: Number   // index of correct option (0-3)
+});
+
 const videoSchema = new mongoose.Schema({
   courseId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -8,7 +23,12 @@ const videoSchema = new mongoose.Schema({
   },
 
   title: String,
+
   textContent: String,
+
+  attachments: [attachmentSchema],
+
+  quiz: [questionSchema],
 
   publicId: String,
   

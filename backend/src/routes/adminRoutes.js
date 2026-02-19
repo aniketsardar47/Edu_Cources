@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
+
 const multer = require("multer");
+const path = require("path");
 const { uploadVideoByAdmin } = require("../controllers/adminController");
+
 
 // Temp storage
 const storage = multer.diskStorage({
@@ -12,6 +15,14 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-router.post("/upload-video", upload.single("video"), uploadVideoByAdmin);
+
+router.post(
+  "/upload-video",
+  upload.fields([
+    { name: "video", maxCount: 1 },
+    { name: "files", maxCount: 10 }   // attachments
+  ]),
+  uploadVideoByAdmin
+);
 
 module.exports = router;
