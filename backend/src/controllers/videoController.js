@@ -33,3 +33,30 @@ exports.getVideoById = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+exports.translateVideoDescription = async (req, res) => {
+
+  const { text, target } = req.body;
+
+  try {
+    const response = await fetch(
+      "https://translate.argosopentech.com/translate",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          q: text,
+          source: "auto",
+          target,
+          format: "text",
+        }),
+      }
+    );
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: "Translation failed" });
+  }
+};
