@@ -15,10 +15,7 @@ const generateDescription = async (transcript) => {
     });
 
     const prompt = `
-You are an educational content assistant.
-
-Based on the following video transcript, generate a clear and concise educational description in detail.
-
+You are an educational content assistant. Based on the following video transcript, generate a clear and concise educational description in detail.
 Focus on:
 - Main topic
 - Key concepts explained
@@ -26,6 +23,7 @@ Focus on:
 
 Transcript:
 ${transcript}
+Remove the spaces and newlines from the description. Return only the description text without any formatting or additional commentary.
 `;
 
     const result = await model.generateContent(prompt);

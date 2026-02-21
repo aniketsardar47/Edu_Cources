@@ -36,51 +36,107 @@ exports.getVideoById = async (req, res) => {
 
 
 
+// transtlate video description
+const translationCache = {};
+
+// Language name → code
+const languageMap = {
+  Hindi: "hi",
+  Marathi: "mr",
+  Telugu: "te",
+  English: "en",
+  Tamil: "ta"
+};
+
+// Function to split text into chunks (max ~450 chars)
+const splitText = (text, maxLength = 450) => {
+  const chunks = [];
+  let start = 0;
+
+  while (start < text.length) {
+    chunks.push(text.substring(start, start + maxLength));
+    start += maxLength;
+  }
+
+  return chunks;
+};
+
+// Translate single chunk
+const translateChunk = async (chunk, targetCode) => {
+  // Try MyMemory first
+  try {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+      chunk
+    )}&langpair=en|${targetCode}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.responseStatus === 200) {
+      return data.responseData.translatedText;
+    } else {
+      throw new Error("MyMemory limit");
+    }
+  } catch (err) {
+    // Fallback to Google
+    const googleUrl =
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${targetCode}&dt=t&q=${encodeURIComponent(chunk)}`;
+
+    const googleResponse = await fetch(googleUrl);
+    const googleData = await googleResponse.json();
+
+    return googleData[0].map(item => item[0]).join("");
+  }
+};
+
 exports.translateVideoDescription = async (req, res) => {
   const { text, target } = req.body;
 
   if (!text || !target) {
     return res.status(400).json({
-      error: "text and target language are required"
+      error: "text and target required"
     });
   }
 
-  // Full language name → code
-  const languageMap = {
-    hindi: "hi",
-    marathi: "mr",
-    telugu: "te",
-    english: "en",
-    tamil: "ta"
-  };
-
-  const targetCode = languageMap[target.toLowerCase()];
+  const targetCode = languageMap[target];
 
   if (!targetCode) {
     return res.status(400).json({
-      error: "Unsupported language. Use Hindi, Marathi, Telugu, etc."
+      error: "Unsupported language"
+    });
+  }
+
+  const cacheKey = `${text}_${targetCode}`;
+
+  // Return cached result
+  if (translationCache[cacheKey]) {
+    return res.json({
+      translatedText: translationCache[cacheKey],
+      cached: true
     });
   }
 
   try {
-    // MyMemory format: langpair=source|target
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-      text
-    )}&langpair=en|${targetCode}`;
+    // Split long text
+    const chunks = splitText(text);
 
-    const response = await fetch(url);
+    let translatedChunks = [];
 
-    if (!response.ok) {
-      throw new Error("Translation API error");
+    for (let chunk of chunks) {
+      const translated = await translateChunk(chunk, targetCode);
+      translatedChunks.push(translated);
     }
 
-    const data = await response.json();
+    const finalText = translatedChunks.join(" ");
+
+    // Cache result
+    translationCache[cacheKey] = finalText;
 
     res.json({
-      originalText: text,
-      sourceLanguage: "English",
-      targetLanguage: target,
-      translatedText: data.responseData.translatedText
+      originalLength: text.length,
+      chunks: chunks.length,
+      translatedText: finalText,
+      cached: false
     });
 
   } catch (error) {
