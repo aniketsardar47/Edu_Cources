@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../services/AdminApi";
-import { UserPlus, Mail, Lock, User, Phone } from "lucide-react";
+import { UserPlus, Mail, Lock, User, Phone, ChevronLeft, ShieldPlus } from "lucide-react";
 
 const AdminSignup = () => {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ const AdminSignup = () => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setError(""); // Clear error when user starts typing
+    setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -27,21 +27,8 @@ const AdminSignup = () => {
     setLoading(true);
     setError("");
 
-    // Validation
-    if (!form.name || !form.email || !form.password || !form.confirmPassword) {
-      setError("Please fill in all required fields");
-      setLoading(false);
-      return;
-    }
-
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
-      setLoading(false);
-      return;
-    }
-
-    if (form.password.length < 6) {
-      setError("Password must be at least 6 characters");
       setLoading(false);
       return;
     }
@@ -55,12 +42,10 @@ const AdminSignup = () => {
         phone: form.phone
       });
 
-      // Store token in localStorage
       localStorage.setItem("adminToken", response.data.token);
       localStorage.setItem("adminRole", response.data.admin.role);
       localStorage.setItem("adminEmail", response.data.admin.email);
 
-      // Redirect to admin dashboard
       navigate("/admin/dashboard");
     } catch (error) {
       if (error.response?.data?.message) {
@@ -74,155 +59,131 @@ const AdminSignup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-        
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-green-600 rounded-full">
-              <UserPlus className="w-6 h-6 text-white" />
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] px-4 py-12 relative overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/10 blur-[130px] rounded-full pointer-events-none"></div>
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Back Button */}
+        <Link
+          to="/admin"
+          className="inline-flex items-center gap-2 text-gray-500 hover:text-purple-400 mb-8 transition-colors group"
+        >
+          <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-bold">Back to Portal</span>
+        </Link>
+
+        <div className="glass p-10 rounded-[2.5rem] border-white/10 shadow-2xl">
+          {/* Header */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center p-4 bg-purple-500/10 rounded-2xl border border-purple-500/20 mb-6">
+              <ShieldPlus className="w-8 h-8 text-purple-400" />
             </div>
+            <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Create Identity</h1>
+            <p className="text-gray-400 font-medium">New administrator registration</p>
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Create Admin Account</h1>
-          <p className="text-gray-600">Register as an administrator</p>
-        </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm font-medium">{error}</p>
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          
-          {/* Name Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name
-            </label>
-            <div className="relative">
-              <User className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="John Doe"
-                required
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-              />
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
+              <p className="text-red-400 text-sm font-bold text-center">{error}</p>
             </div>
-          </div>
+          )}
 
-          {/* Email Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="admin@example.com"
-                required
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-              />
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">Full Name</label>
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-purple-400" />
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="Commander Name"
+                  required
+                  className="w-full pl-12 pr-4 py-3.5 bg-[#0a0a0a] border border-white/10 rounded-2xl focus:border-purple-500/50 outline-none transition-all text-white placeholder:text-gray-700"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Phone Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number (Optional)
-            </label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-              <input
-                type="tel"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                placeholder="+91 9876543210"
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-              />
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">Email System</label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-purple-400" />
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder="admin@edu-cources.com"
+                  required
+                  className="w-full pl-12 pr-4 py-3.5 bg-[#0a0a0a] border border-white/10 rounded-2xl focus:border-purple-500/50 outline-none transition-all text-white placeholder:text-gray-700"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Password Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Min. 6 characters"
-                required
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-              />
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">Secure Passcode</label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-purple-400" />
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="••••••••••••"
+                  required
+                  className="w-full pl-12 pr-4 py-3.5 bg-[#0a0a0a] border border-white/10 rounded-2xl focus:border-purple-500/50 outline-none transition-all text-white placeholder:text-gray-700"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Confirm Password Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-              <input
-                type="password"
-                name="confirmPassword"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                placeholder="Re-enter your password"
-                required
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-              />
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">Confirm Security</label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-purple-400" />
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••••••"
+                  required
+                  className="w-full pl-12 pr-4 py-3.5 bg-[#0a0a0a] border border-white/10 rounded-2xl focus:border-purple-500/50 outline-none transition-all text-white placeholder:text-gray-700"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Terms & Conditions */}
-          <label className="flex items-start gap-2 text-sm text-gray-600">
-            <input
-              type="checkbox"
-              className="mt-1 rounded border-gray-300 cursor-pointer"
-              required
-            />
-            I agree to the terms and conditions
-          </label>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed mt-6"
-          >
-            {loading ? "Creating Account..." : "Create Account"}
-          </button>
-        </form>
-
-        {/* Footer */}
-        <div className="mt-6 text-center text-sm">
-          <p className="text-gray-600">
-            Already have an admin account?{" "}
             <button
-              onClick={() => navigate("/admin/login")}
-              className="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2"
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-purple-600 text-white font-black rounded-2xl hover:bg-purple-700 transition-all hover:scale-[1.02] shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2 mt-4"
             >
-              Sign in
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <UserPlus size={20} />
+                  Authorize Registration
+                </>
+              )}
             </button>
-          </p>
+          </form>
+
+          {/* Footer */}
+          <div className="mt-8 text-center">
+            <p className="text-gray-500 text-sm font-medium">
+              Existing commander?{" "}
+              <button
+                onClick={() => navigate("/admin/login")}
+                className="text-purple-400 hover:text-purple-300 font-bold transition-colors"
+              >
+                Access Portal
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </div>

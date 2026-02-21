@@ -14,6 +14,17 @@ exports.getVideosByCourse = async (req, res) => {
 };
 
 
+// Get all videos (across all courses)
+exports.getAllVideos = async (req, res) => {
+  try {
+    const videos = await Video.find().sort({ createdAt: -1 });
+    res.json(videos);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 // Get a specific video from a specific course
 exports.getVideoById = async (req, res) => {
   try {

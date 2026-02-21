@@ -3,7 +3,7 @@ const Course = require("../models/Course");
 // Create Course (Admin)
 exports.createCourse = async (req, res) => {
   try {
-    const { title, description, thumbnail } = req.body;
+    const { title, description } = req.body;
 
     // Check if course already exists
     const existing = await Course.findOne({ title });
@@ -13,8 +13,7 @@ exports.createCourse = async (req, res) => {
 
     const course = new Course({
       title,
-      description,
-      thumbnail
+      description
     });
 
     await course.save();

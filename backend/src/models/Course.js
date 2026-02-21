@@ -7,7 +7,6 @@ const courseSchema = new mongoose.Schema({
     unique: true
   },
   description: String,
-  thumbnail: String,
   createdAt: {
     type: Date,
     default: Date.now

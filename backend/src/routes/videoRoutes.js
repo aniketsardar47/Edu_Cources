@@ -3,8 +3,12 @@ const router = express.Router();
 
 const {
   getVideosByCourse,
+  getAllVideos,
   getVideoById
 } = require("../controllers/videoController");
+
+// Get all videos
+router.get("/", getAllVideos);
 
 // Get all videos of a course
 router.get("/course/:courseId", getVideosByCourse);

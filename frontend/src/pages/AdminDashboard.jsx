@@ -1,30 +1,34 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/AdminApi";
-import { LogOut, User, LayoutDashboard, BookOpen, Video, Settings } from "lucide-react";
+import { LogOut, User, LayoutDashboard, BookOpen, Video, Settings, Plus, Activity, ShieldCheck, Clock, Smartphone, Mail as MailIcon } from "lucide-react";
+import AddCourseModal from "../components/AddCourseModal";
+import UploadVideoModal from "../components/UploadVideoModal";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [adminData, setAdminData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [courses, setCourses] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [showAddCourseModal, setShowAddCourseModal] = useState(false);
+  const [showUploadVideoModal, setShowUploadVideoModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
-    
+
     if (!token) {
       navigate("/admin/login");
       return;
     }
 
-    // Fetch admin profile
     const fetchProfile = async () => {
       try {
         const response = await api.get("/auth/admin/profile");
         setAdminData(response.data.admin);
       } catch (error) {
         console.error("Failed to fetch profile:", error);
-        // Clear token and redirect to login if unauthorized
         if (error.response?.status === 401) {
           localStorage.removeItem("adminToken");
           navigate("/admin/login");
@@ -35,7 +39,27 @@ const AdminDashboard = () => {
     };
 
     fetchProfile();
+    fetchCourses();
+    fetchAllVideos();
   }, [navigate]);
+
+  const fetchCourses = async () => {
+    try {
+      const response = await api.get("/courses");
+      setCourses(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch courses:", error);
+    }
+  };
+
+  const fetchAllVideos = async () => {
+    try {
+      const response = await api.get("/videos");
+      setVideos(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch all videos:", error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -52,305 +76,321 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="w-20 h-20 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!adminData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">Unable to load admin data</p>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
+        <div className="glass p-10 rounded-[2.5rem] text-center max-w-md">
+          <p className="text-gray-400 mb-6 font-bold">Session Authentication Failed</p>
           <button
             onClick={() => navigate("/admin/login")}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+            className="w-full py-4 bg-purple-600 text-white font-black rounded-2xl hover:bg-purple-700 transition-all"
           >
-            Return to Login
+            Reconnect Terminal
           </button>
         </div>
       </div>
     );
   }
 
+  const TabButton = ({ id, icon: Icon, label }) => (
+    <button
+      onClick={() => setActiveTab(id)}
+      className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all duration-300 relative overflow-hidden group ${activeTab === id
+        ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
+        : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+        }`}
+    >
+      <Icon size={18} />
+      {label}
+      {activeTab === id && (
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-white/30"></div>
+      )}
+    </button>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-full">
-              <LayoutDashboard className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-purple-500/30">
+      {/* Sidebar / Navigation */}
+      <div className="fixed top-0 left-0 h-full w-20 lg:w-72 bg-[#0a0a0a] border-r border-white/5 z-40 hidden md:flex flex-col">
+        <div className="p-8">
+          <div className="flex items-center gap-4 mb-12">
+            <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/40">
+              <ShieldCheck className="text-white" size={24} />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+            <h1 className="text-xl font-black tracking-tighter hidden lg:block uppercase">Nexus<span className="text-purple-500">Admin</span></h1>
           </div>
 
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <p className="text-gray-800 font-semibold">{adminData.name}</p>
-              <p className="text-gray-500 text-sm">{adminData.email}</p>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
-            >
-              <LogOut className="w-5 h-5" />
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Navigation Tabs */}
-        <div className="flex gap-4 mb-8 border-b border-gray-300">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`flex items-center gap-2 px-4 py-2 font-semibold border-b-2 transition ${
-              activeTab === "overview"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            <LayoutDashboard className="w-5 h-5" />
-            Overview
-          </button>
-
-          <button
-            onClick={() => setActiveTab("courses")}
-            className={`flex items-center gap-2 px-4 py-2 font-semibold border-b-2 transition ${
-              activeTab === "courses"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            <BookOpen className="w-5 h-5" />
-            Courses
-          </button>
-
-          <button
-            onClick={() => setActiveTab("videos")}
-            className={`flex items-center gap-2 px-4 py-2 font-semibold border-b-2 transition ${
-              activeTab === "videos"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            <Video className="w-5 h-5" />
-            Videos
-          </button>
-
-          <button
-            onClick={() => setActiveTab("settings")}
-            className={`flex items-center gap-2 px-4 py-2 font-semibold border-b-2 transition ${
-              activeTab === "settings"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            <Settings className="w-5 h-5" />
-            Settings
-          </button>
+          <nav className="space-y-4">
+            <TabButton id="overview" icon={LayoutDashboard} label="Overview" />
+            <TabButton id="courses" icon={BookOpen} label="Courses" />
+            <TabButton id="videos" icon={Video} label="Videos" />
+            <TabButton id="settings" icon={Settings} label="Settings" />
+          </nav>
         </div>
 
-        {/* Content Sections */}
-
-        {/* Overview Tab */}
-        {activeTab === "overview" && (
-          <div className="space-y-6">
-            {/* Welcome Card */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg p-8 text-white">
-              <h2 className="text-3xl font-bold mb-2">Welcome, {adminData.name}!</h2>
-              <p className="opacity-90">You are logged in as an {adminData.role}</p>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-semibold">Total Courses</p>
-                    <p className="text-4xl font-bold text-blue-600 mt-2">0</p>
-                  </div>
-                  <BookOpen className="w-12 h-12 text-blue-100" />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-semibold">Total Videos</p>
-                    <p className="text-4xl font-bold text-green-600 mt-2">0</p>
-                  </div>
-                  <Video className="w-12 h-12 text-green-100" />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-semibold">Account Status</p>
-                    <p className="text-xl font-bold text-yellow-600 mt-2">
-                      {adminData.isActive ? "Active" : "Inactive"}
-                    </p>
-                  </div>
-                  <User className="w-12 h-12 text-yellow-100" />
-                </div>
-              </div>
-            </div>
-
-            {/* Permissions Section */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Your Permissions</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <input type="checkbox" checked={adminData.permissions?.canManageCourses} disabled className="cursor-not-allowed" />
-                  <label className="text-gray-700">Can Manage Courses</label>
-                </div>
-                <div className="flex items-center gap-3">
-                  <input type="checkbox" checked={adminData.permissions?.canManageVideos} disabled className="cursor-not-allowed" />
-                  <label className="text-gray-700">Can Manage Videos</label>
-                </div>
-                <div className="flex items-center gap-3">
-                  <input type="checkbox" checked={adminData.permissions?.canManageAdmins} disabled className="cursor-not-allowed" />
-                  <label className="text-gray-700">Can Manage Admins</label>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Courses Tab */}
-        {activeTab === "courses" && (
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-800">Manage Courses</h3>
-              <button className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
-                Add New Course
-              </button>
-            </div>
-            <div className="text-center py-12 text-gray-600">
-              <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No courses found. Click "Add New Course" to get started.</p>
-            </div>
-          </div>
-        )}
-
-        {/* Videos Tab */}
-        {activeTab === "videos" && (
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-800">Manage Videos</h3>
-              <button className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
-                Upload New Video
-              </button>
-            </div>
-            <div className="text-center py-12 text-gray-600">
-              <Video className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No videos found. Click "Upload New Video" to get started.</p>
-            </div>
-          </div>
-        )}
-
-        {/* Settings Tab */}
-        {activeTab === "settings" && (
-          <div className="space-y-6">
-            {/* Admin Profile Settings */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6">Profile Settings</h3>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
-                  <input
-                    type="text"
-                    value={adminData.name}
-                    disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                  <input
-                    type="email"
-                    value={adminData.email}
-                    disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
-                  <input
-                    type="tel"
-                    value={adminData.phone || "Not provided"}
-                    disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Last Login</label>
-                  <input
-                    type="text"
-                    value={adminData.lastLogin ? new Date(adminData.lastLogin).toLocaleString() : "Never"}
-                    disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
-                  />
-                </div>
-              </div>
-
-              <button className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
-                Update Profile
-              </button>
-            </div>
-
-            {/* Change Password */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6">Change Password</h3>
-
-              <div className="space-y-4 max-w-md">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
-                  <input
-                    type="password"
-                    placeholder="Enter current password"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
-                  <input
-                    type="password"
-                    placeholder="Enter new password"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm Password</label>
-                  <input
-                    type="password"
-                    placeholder="Confirm new password"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
-                  />
-                </div>
-
-                <button className="w-full mt-6 px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
-                  Update Password
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="mt-auto p-8 border-t border-white/5">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-4 w-full p-4 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300 font-bold"
+          >
+            <LogOut size={20} />
+            <span className="hidden lg:block">System Exit</span>
+          </button>
+        </div>
       </div>
+
+      <main className="md:ml-20 lg:ml-72 min-h-screen">
+        {/* Top Navbar */}
+        <header className="glass sticky top-0 z-30 border-b border-white/5 backdrop-blur-2xl">
+          <div className="px-8 py-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-purple-500 mb-1">Node Terminal</h2>
+              <p className="text-sm font-bold text-gray-500">Welcome, Commander {adminData.name.split(' ')[0]}</p>
+            </div>
+
+            <div className="flex items-center gap-6">
+              <div className="hidden sm:flex flex-col text-right">
+                <p className="text-sm font-black">{adminData.name}</p>
+                <p className="text-[10px] font-black uppercase text-gray-600 tracking-widest">{adminData.role}</p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-white/5 p-[1px]">
+                <div className="w-full h-full rounded-2xl bg-[#0a0a0a] flex items-center justify-center">
+                  <User className="text-purple-400" size={20} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="p-8 lg:p-12">
+          {/* Overview Section */}
+          {activeTab === "overview" && (
+            <div className="space-y-8 animate-fade-in">
+              {/* Hero Statistics */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 glass p-10 rounded-[3rem] border-white/5 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 rotate-12 group-hover:scale-110 transition-transform duration-1000">
+                    <Activity size={200} />
+                  </div>
+                  <div className="relative z-10">
+                    <h3 className="text-4xl font-black mb-4 tracking-tighter">System Health: <span className="text-purple-500">Optimal</span></h3>
+                    <p className="text-gray-400 font-medium mb-8 max-w-md">Nexus terminal is synchronized with global database. All administrative protocols are green.</p>
+                    <div className="flex gap-4">
+                      <button onClick={() => setActiveTab("courses")} className="px-8 py-4 bg-white text-black font-black rounded-2xl hover:bg-gray-200 transition-all flex items-center gap-2">
+                        <Plus size={18} /> Deploy Course
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="glass p-10 rounded-[3rem] border-white/5 flex flex-col justify-center gap-6 bg-purple-600/5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-black uppercase tracking-widest text-purple-400">Database Load</p>
+                    <Activity className="text-purple-500" size={16} />
+                  </div>
+                  <div className="space-y-4">
+                    <div className="h-3 w-full bg-[#0a0a0a] rounded-full overflow-hidden">
+                      <div className="h-full w-[65%] bg-purple-500 rounded-full shadow-[0_0_20px_rgba(168,85,247,0.5)]"></div>
+                    </div>
+                    <div className="flex justify-between text-xs font-black text-gray-500">
+                      <span>CAPACITY: 1.2TB</span>
+                      <span>USAGE: 65%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {[
+                  { label: "Total Courses", value: courses.length, icon: BookOpen, color: "text-blue-400" },
+                  { label: "Media Assets", value: videos.length, icon: Video, color: "text-green-400" },
+                  { label: "Status", value: adminData.isActive ? "Online" : "Offline", icon: Activity, color: "text-purple-400" }
+                ].map((stat, i) => (
+                  <div key={i} className="glass p-8 rounded-[2.5rem] border-white/5 hover:border-purple-500/20 transition-all group">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className={`p-4 bg-white/5 rounded-2xl ${stat.color} group-hover:scale-110 transition-transform`}>
+                        <stat.icon size={24} />
+                      </div>
+                      <p className="text-xs font-black text-gray-600 uppercase tracking-widest">Live Registry</p>
+                    </div>
+                    <h4 className="text-gray-500 font-black uppercase tracking-widest text-xs mb-1">{stat.label}</h4>
+                    <p className="text-3xl font-black">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Courses Section */}
+          {activeTab === "courses" && (
+            <div className="animate-fade-in">
+              <div className="glass p-10 rounded-[3rem] border-white/5">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-12">
+                  <div>
+                    <h3 className="text-3xl font-black tracking-tight mb-2">Curriculum Control</h3>
+                    <p className="text-gray-500 font-medium">Manage and deploy educational course modules</p>
+                  </div>
+                  <button
+                    onClick={() => setShowAddCourseModal(true)}
+                    className="px-8 py-4 bg-purple-600 text-white font-black rounded-2xl hover:bg-purple-700 transition-all flex items-center gap-3 shadow-xl shadow-purple-500/20"
+                  >
+                    <Plus size={20} /> Add New Entry
+                  </button>
+                </div>
+
+                {courses.length > 0 ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    {courses.map((course) => (
+                      <div key={course._id} className="glass p-8 rounded-[2.5rem] border-white/5 hover:bg-white/[0.04] transition-all group">
+                        <div className="flex justify-between items-start mb-4">
+                          <h4 className="text-xl font-bold tracking-tight text-white group-hover:text-purple-400 transition-colors uppercase">{course.title}</h4>
+                          <span className="text-[10px] bg-white/5 px-3 py-1 rounded-full text-gray-500 font-black tracking-widest uppercase">Node_ID: {course._id.slice(-6)}</span>
+                        </div>
+                        <p className="text-gray-400 text-sm mb-8 line-clamp-2 leading-relaxed">{course.description}</p>
+                        <div className="flex gap-3">
+                          <button className="flex-1 px-4 py-3 bg-white/5 border border-white/5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-colors">Configure</button>
+                          <button className="flex-1 px-4 py-3 bg-red-500/10 border border-red-500/10 rounded-xl text-xs font-black uppercase tracking-widest text-red-400 hover:bg-red-500 hover:text-white transition-all">Decommission</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20 bg-white/5 rounded-[2.5rem]">
+                    <BookOpen size={64} className="mx-auto text-gray-700 mb-6" />
+                    <p className="text-gray-500 font-bold uppercase tracking-widest">No local entries detected in Curriculum Grid</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Videos Section */}
+          {activeTab === "videos" && (
+            <div className="animate-fade-in">
+              <div className="glass p-10 rounded-[3rem] border-white/5">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-12">
+                  <div>
+                    <h3 className="text-3xl font-black tracking-tight mb-2">Media Repository</h3>
+                    <p className="text-gray-500 font-medium">Global CDN synchronization and asset management</p>
+                  </div>
+                  <button
+                    onClick={() => setShowUploadVideoModal(true)}
+                    className="px-8 py-4 bg-purple-600 text-white font-black rounded-2xl hover:bg-purple-700 transition-all flex items-center gap-3 shadow-xl shadow-purple-500/20"
+                  >
+                    <Plus size={20} /> Upload Asset
+                  </button>
+                </div>
+
+                {videos.length > 0 ? (
+                  <div className="space-y-4">
+                    {videos.map((video) => (
+                      <div key={video._id} className="glass p-6 rounded-[2rem] border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 hover:bg-white/[0.04] transition-all">
+                        <div className="flex items-center gap-6 flex-1 min-w-0">
+                          <div className="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center border border-purple-500/20 text-purple-400 shrink-0">
+                            <Video size={24} />
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-white truncate text-lg uppercase tracking-tight">{video.title}</h4>
+                            <p className="text-xs font-black text-gray-600 uppercase tracking-widest mt-1">
+                              REL: {courses.find(c => c._id === video.courseId)?.title || "ORPHANED"} | SEQUENCE: {video.order || "---"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-3 shrink-0">
+                          <button className="px-5 py-2.5 bg-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10">Refactor</button>
+                          <button className="px-5 py-2.5 bg-red-500/10 text-red-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Purge</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20 bg-white/5 rounded-[2.5rem]">
+                    <Video size={64} className="mx-auto text-gray-700 mb-6" />
+                    <p className="text-gray-500 font-bold uppercase tracking-widest">Asset Repository Empty</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Settings Section */}
+          {activeTab === "settings" && (
+            <div className="space-y-8 animate-fade-in">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Profile Grid */}
+                <div className="glass p-10 rounded-[3rem] border-white/5">
+                  <h3 className="text-2xl font-black mb-8 flex items-center gap-4 uppercase tracking-tighter">
+                    <ShieldCheck className="text-purple-500" /> Security Clearance
+                  </h3>
+
+                  <div className="space-y-6">
+                    {[
+                      { label: "Designation", value: adminData.name, icon: User },
+                      { label: "Comm Channel", value: adminData.email, icon: MailIcon },
+                      { label: "Secure Link", value: adminData.phone || "Not Registered", icon: Smartphone },
+                      { label: "Last Sync", value: adminData.lastLogin ? new Date(adminData.lastLogin).toLocaleString() : "Never", icon: Clock }
+                    ].map((item, i) => (
+                      <div key={i}>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-2 block ml-1">{item.label}</label>
+                        <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+                          <item.icon size={18} className="text-purple-400" />
+                          <span className="font-bold text-gray-300">{item.value}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Password Grid */}
+                <div className="glass p-10 rounded-[3rem] border-white/5">
+                  <h3 className="text-2xl font-black mb-8 flex items-center gap-4 uppercase tracking-tighter">
+                    <Settings className="text-purple-500" /> Protocol Override
+                  </h3>
+                  <div className="space-y-6">
+                    {["Current Keychain", "New Identifier", "Confirm Identity"].map((p, i) => (
+                      <div key={i}>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-2 block ml-1">{p}</label>
+                        <input
+                          type="password"
+                          placeholder="••••••••••••"
+                          className="w-full p-4 bg-white/5 border border-white/5 rounded-2xl focus:border-purple-500/50 outline-none font-bold"
+                        />
+                      </div>
+                    ))}
+                    <button className="w-full py-4 bg-white text-black font-black rounded-2xl hover:bg-gray-200 transition-all uppercase tracking-widest text-xs mt-4">
+                      Update Security Protocols
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Modals */}
+      <AddCourseModal
+        isOpen={showAddCourseModal}
+        onClose={() => setShowAddCourseModal(false)}
+        onSuccess={fetchCourses}
+      />
+
+      <UploadVideoModal
+        isOpen={showUploadVideoModal}
+        onClose={() => setShowUploadVideoModal(false)}
+        onSuccess={() => {
+          fetchCourses();
+          fetchAllVideos();
+        }}
+        courses={courses}
+      />
     </div>
   );
 };

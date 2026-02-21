@@ -16,5 +16,4 @@ router.get("/", getAllCourses);
 // User - Get course by ID
 router.get("/:id", getCourseById);
 
-
 module.exports = router;

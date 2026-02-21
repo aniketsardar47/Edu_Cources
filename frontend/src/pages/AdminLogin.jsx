@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/AdminApi";
-import { Lock, Mail, LogIn } from "lucide-react";
+import { Lock, Mail, LogIn, ChevronLeft, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const AdminLogin = () => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setError(""); // Clear error when user starts typing
+    setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -30,12 +31,10 @@ const AdminLogin = () => {
         password: form.password
       });
 
-      // Store token in localStorage
       localStorage.setItem("adminToken", response.data.token);
       localStorage.setItem("adminRole", response.data.admin.role);
       localStorage.setItem("adminEmail", response.data.admin.email);
 
-      // Redirect to admin dashboard
       navigate("/admin/dashboard");
     } catch (error) {
       if (error.response?.data?.message) {
@@ -49,114 +48,109 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-        
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-blue-600 rounded-full">
-              <LogIn className="w-6 h-6 text-white" />
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] px-4 relative overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/10 blur-[150px] rounded-full pointer-events-none"></div>
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Back Button */}
+        <Link
+          to="/admin"
+          className="inline-flex items-center gap-2 text-gray-500 hover:text-purple-400 mb-8 transition-colors group"
+        >
+          <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-bold">Back to Portal</span>
+        </Link>
+
+        <div className="glass p-10 rounded-[2.5rem] border-white/10 shadow-2xl">
+          {/* Header */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center p-4 bg-purple-500/10 rounded-2xl border border-purple-500/20 mb-6">
+              <ShieldCheck className="w-8 h-8 text-purple-400" />
             </div>
+            <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Welcome Back</h1>
+            <p className="text-gray-400 font-medium">Identity verification required</p>
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Login</h1>
-          <p className="text-gray-600">Access your admin dashboard</p>
-        </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm font-medium">{error}</p>
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          
-          {/* Email Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="admin@example.com"
-                required
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-              />
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl animate-fade-in">
+              <p className="text-red-400 text-sm font-bold text-center">{error}</p>
             </div>
-          </div>
+          )}
 
-          {/* Password Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                required
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-              />
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-3 ml-1">
+                Admin Identifier
+              </label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-purple-400 transition-colors" />
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder="admin@edu-cources.com"
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-[#0a0a0a] border border-white/10 rounded-2xl focus:border-purple-500/50 outline-none transition-all text-white placeholder:text-gray-700 font-medium"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-gray-600">
-              <input
-                type="checkbox"
-                className="rounded border-gray-300 cursor-pointer"
-              />
-              Remember me
-            </label>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-3 ml-1">
+                Access Keychain
+              </label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-purple-400 transition-colors" />
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="••••••••••••"
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-[#0a0a0a] border border-white/10 rounded-2xl focus:border-purple-500/50 outline-none transition-all text-white placeholder:text-gray-700 font-medium"
+                />
+              </div>
+            </div>
+
             <button
-              type="button"
-              className="text-blue-600 hover:text-blue-800 font-medium"
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-purple-600 text-white font-black rounded-2xl hover:bg-purple-700 transition-all hover:scale-[1.02] shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:scale-100"
             >
-              Forgot password?
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <LogIn size={20} />
+                  Authenticate
+                </>
+              )}
             </button>
+          </form>
+
+          {/* Footer */}
+          <div className="mt-10 text-center">
+            <p className="text-gray-500 text-sm font-medium">
+              New system commander?{" "}
+              <button
+                onClick={() => navigate("/admin/signup")}
+                className="text-purple-400 hover:text-purple-300 font-bold transition-colors"
+              >
+                Register Credentials
+              </button>
+            </p>
           </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
-
-        {/* Footer */}
-        <div className="mt-6 text-center text-sm">
-          <p className="text-gray-600">
-            Don't have an admin account?{" "}
-            <button
-              onClick={() => navigate("/admin/signup")}
-              className="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2"
-            >
-              Create one
-            </button>
-          </p>
         </div>
 
-        {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-xs text-gray-600 font-medium mb-2">Demo Credentials:</p>
-          <p className="text-xs text-gray-700">Email: admin@example.com</p>
-          <p className="text-xs text-gray-700">Password: admin123</p>
-        </div>
+        {/* Support info */}
+        <p className="mt-8 text-center text-xs text-gray-700 uppercase tracking-widest font-black">
+          Edu_Cources Unified Auth System v2.4
+        </p>
       </div>
     </div>
   );

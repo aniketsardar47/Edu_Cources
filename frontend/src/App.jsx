@@ -6,11 +6,12 @@ import TestPage from "./pages/TestPage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminSignup from "./pages/AdminSignup";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLanding from "./pages/AdminLanding";
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gradient-to-br from-[#0a1929] to-[#1e2f4a]">
+      <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-purple-500/30">
         <Routes>
           {/* Student Routes */}
           <Route path="/" element={<HomePage />} />
@@ -19,6 +20,7 @@ function App() {
           <Route path="/test/:courseId/:videoId" element={<TestPage />} />
 
           {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLanding />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/signup" element={<AdminSignup />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
