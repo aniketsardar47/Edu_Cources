@@ -1,13 +1,18 @@
 require("dotenv").config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMENI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const generateDescription = async (transcript) => {
   try {
-    // Validate input
     if (!transcript || transcript.trim().length === 0) {
-      return "No content available to generate description.";
+      return {
+        english: "No content available",
+        hindi: "कोई सामग्री उपलब्ध नहीं",
+        marathi: "कोणतीही सामग्री उपलब्ध नाही",
+        telugu: "కంటెంట్ అందుబాటులో లేదు",
+        tamil: "உள்ளடக்கம் கிடைக்கவில்லை"
+      };
     }
 
     const model = genAI.getGenerativeModel({
@@ -15,27 +20,38 @@ const generateDescription = async (transcript) => {
     });
 
     const prompt = `
-You are an educational content assistant. Based on the following video transcript, generate a clear and concise educational description in detail.
-Focus on:
-- Main topic
-- Key concepts explained
-- Learning outcome
+Generate an educational video description in:
+English, Hindi, Marathi, Telugu, Tamil.
+
+Return ONLY valid JSON in this format:
+
+{
+  "english": "...",
+  "hindi": "...",
+  "marathi": "...",
+  "telugu": "...",
+  "tamil": "..."
+}
 
 Transcript:
 ${transcript}
-Remove the spaces and newlines from the description. Return only the description text without any formatting or additional commentary.
 `;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
 
-    const description = response.text();
-
-    return description.trim();
+    return JSON.parse(response.text());
 
   } catch (error) {
-    console.error("Gemini Description Error:", error.message);
-    return "Description could not be generated.";
+    console.error("Gemini Error:", error.message);
+
+    return {
+      english: "Description not generated.",
+      hindi: "विवरण उत्पन्न नहीं हुआ।",
+      marathi: "वर्णन तयार झाले नाही.",
+      telugu: "వివరణ సృష్టించబడలేదు.",
+      tamil: "விளக்கம் உருவாக்கப்படவில்லை."
+    };
   }
 };
 

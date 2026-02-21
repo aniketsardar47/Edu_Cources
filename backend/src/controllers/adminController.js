@@ -1,5 +1,5 @@
 const generateDescription = require("../services/generateDescription");
-const createDescriptionFile = require("../services/createDescriptionFile");
+const createMultiDescriptionFiles = require("../services/createMultiDescriptionFiles");
 const uploadTextFile = require("../services/uploadTextToImagekit");
 const { uploadVideo, uploadFile } = require("../services/imagekitUpload");
 const generateUrls = require("../services/videoTransformService");
@@ -13,13 +13,13 @@ const generateQuiz = require("../services/generateQuiz");
 exports.uploadVideoByAdmin = async (req, res) => {
   let videoPath = null;
   let audioPath = null;
-  let descFilePath = null;
+  let descFilePaths = {};
 
   try {
     const { courseId, title, textContent, order, notes } = req.body;
 
     // =========================
-    // Correct file check
+    // Check video file
     // =========================
     if (!req.files || !req.files.video) {
       return res.status(400).json({ message: "Video file required" });
@@ -27,35 +27,59 @@ exports.uploadVideoByAdmin = async (req, res) => {
 
     videoPath = req.files.video[0].path;
 
-    // Step 1: Upload video to ImageKit
+    // =========================
+    // 1️⃣ Upload Video
+    // =========================
     const fileData = await uploadVideo(videoPath);
     const videoUrl = fileData.url;
-    console.log("Video uploaded");
+    console.log("Video uploaded to ImageKit");
 
-    // Step 2: Extract audio
+    // =========================
+    // 2️⃣ Extract Audio
+    // =========================
     audioPath = await extractAudio(videoPath);
     console.log("Audio extracted");
 
-    // Step 3: Transcribe audio
+    // =========================
+    // 3️⃣ Transcribe Audio
+    // =========================
     const transcript = await transcribeAudio(audioPath);
     console.log("Transcript generated");
 
-    // Step 4: Generate AI description
-    const descriptionText = await generateDescription(transcript);
-    console.log("AI description generated");
+    // =========================
+    // 4️⃣ Generate 5-Language Description
+    // =========================
+    const descriptions = await generateDescription(transcript);
+    console.log("Multilingual descriptions generated");
 
+    // =========================
+    // 5️⃣ Generate Quiz
+    // =========================
     const quiz = await generateQuiz(transcript);
     console.log("Quiz generated:", quiz.length);
 
-    // Step 5: Create description file
-    descFilePath = createDescriptionFile(descriptionText);
-
-    // Step 6: Upload description file
-    const descriptionUrl = await uploadTextFile(descFilePath);
-    console.log("Description uploaded");
+    // =========================
+    // 6️⃣ Create 5 TXT Files
+    // =========================
+    descFilePaths = createMultiDescriptionFiles(descriptions);
 
     // =========================
-    // Upload Attachments
+    // 7️⃣ Upload Description Files
+    // =========================
+    let descriptionUrls = {};
+
+    for (const lang in descFilePaths) {
+      const uploaded = await uploadTextFile(descFilePaths[lang]);
+      descriptionUrls[lang] = uploaded.url;
+
+      // Delete local txt file
+      deleteLocalFile(descFilePaths[lang]);
+    }
+
+    console.log("All description files uploaded");
+
+    // =========================
+    // 8️⃣ Upload Attachments
     // =========================
     let attachments = [];
 
@@ -63,16 +87,21 @@ exports.uploadVideoByAdmin = async (req, res) => {
       console.log("Attachments found");
 
       for (const file of req.files.files) {
-        const fileData = await uploadFile(file.path);
-        attachments.push(fileData);
+        const uploaded = await uploadFile(file.path);
+        attachments.push(uploaded);
+
         deleteLocalFile(file.path);
       }
     }
 
-    // Step 7: Generate resolution URLs
+    // =========================
+    // 9️⃣ Generate Resolution URLs
+    // =========================
     const resolutions = generateUrls(videoUrl);
 
-    // Step 8: Save to DB
+    // =========================
+    // 🔟 Save to MongoDB
+    // =========================
     const video = new Video({
       courseId,
       title,
@@ -83,7 +112,7 @@ exports.uploadVideoByAdmin = async (req, res) => {
       downloadUrl: fileData.downloadUrl,
       attachments,
       quiz,
-      descriptionUrl,
+      descriptionUrls, // 🔥 5 language URLs
       size: fileData.size,
       resolutions,
       order
@@ -92,12 +121,13 @@ exports.uploadVideoByAdmin = async (req, res) => {
     await video.save();
     console.log("Video saved in DB");
 
-    // Step 9: Cleanup
+    // =========================
+    // Cleanup local files
+    // =========================
     deleteLocalFile(videoPath);
     deleteLocalFile(audioPath);
-    deleteLocalFile(descFilePath);
 
-    res.json({
+    res.status(200).json({
       message: "Video uploaded successfully",
       video
     });
@@ -107,17 +137,22 @@ exports.uploadVideoByAdmin = async (req, res) => {
 
     deleteLocalFile(videoPath);
     deleteLocalFile(audioPath);
-    deleteLocalFile(descFilePath);
+
+    Object.values(descFilePaths).forEach(deleteLocalFile);
 
     res.status(500).json({ error: err.message });
   }
 };
 
-
-// Safe delete
+// =========================
+// Safe Delete Function
+// =========================
 const deleteLocalFile = (filePath) => {
   try {
+    if (!filePath) return;
+
     const absolutePath = path.resolve(filePath);
+
     if (fs.existsSync(absolutePath)) {
       fs.unlinkSync(absolutePath);
       console.log("Deleted:", absolutePath);
