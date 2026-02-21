@@ -35,28 +35,59 @@ exports.getVideoById = async (req, res) => {
 };
 
 
-exports.translateVideoDescription = async (req, res) => {
 
+exports.translateVideoDescription = async (req, res) => {
   const { text, target } = req.body;
 
+  if (!text || !target) {
+    return res.status(400).json({
+      error: "text and target language are required"
+    });
+  }
+
+  // Full language name → code
+  const languageMap = {
+    hindi: "hi",
+    marathi: "mr",
+    telugu: "te",
+    english: "en",
+    tamil: "ta"
+  };
+
+  const targetCode = languageMap[target.toLowerCase()];
+
+  if (!targetCode) {
+    return res.status(400).json({
+      error: "Unsupported language. Use Hindi, Marathi, Telugu, etc."
+    });
+  }
+
   try {
-    const response = await fetch(
-      "https://translate.argosopentech.com/translate",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          q: text,
-          source: "auto",
-          target,
-          format: "text",
-        }),
-      }
-    );
+    // MyMemory format: langpair=source|target
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+      text
+    )}&langpair=en|${targetCode}`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Translation API error");
+    }
 
     const data = await response.json();
-    res.json(data);
+
+    res.json({
+      originalText: text,
+      sourceLanguage: "English",
+      targetLanguage: target,
+      translatedText: data.responseData.translatedText
+    });
+
   } catch (error) {
-    res.status(500).json({ error: "Translation failed" });
+    console.error("Translation Error:", error.message);
+    res.status(500).json({
+      error: "Translation failed",
+      details: error.message
+    });
   }
 };
