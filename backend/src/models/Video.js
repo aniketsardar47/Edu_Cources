@@ -31,7 +31,7 @@ const videoSchema = new mongoose.Schema({
   quiz: [questionSchema],
 
   publicId: String,
-  
+
   url: String,
 
   downloadUrl: String,
@@ -48,14 +48,8 @@ const videoSchema = new mongoose.Schema({
     p720: String
   },
 
-  descriptionUrls: {
-    english: String,
-    hindi: String,
-    marathi: String,
-    telugu: String,
-    tamil: String
-  },
-  
+  descriptionUrl: String,
+
   order: Number,
 
   createdAt: {
